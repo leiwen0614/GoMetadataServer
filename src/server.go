@@ -8,8 +8,32 @@ import (
 	//    "io"
 	"io/ioutil"
 	//    "os"
+	"github.com/hashicorp/go-memdb"
 	"gopkg.in/yaml.v2"
 )
+
+var schema *memdb.DBSchema = &memdb.DBSchema{
+	Tables: map[string]*memdb.TableSchema{
+		"metadata": &memdb.TableSchema{
+			Name: "metadata",
+			Indexes: map[string]*memdb.IndexSchema{
+				"id": &memdb.IndexSchema{
+					Name:    "id",
+					Unique:  true,
+					Indexer: &memdb.StringFieldIndex{Field: "Title"},
+				},
+				"version": &memdb.IndexSchema{
+					Name:    "version",
+					Unique:  true,
+					Indexer: &memdb.StringFieldIndex{Field: "Version"},
+				},
+			},
+		},
+	},
+}
+
+// Create a new data base
+var db, err = memdb.NewMemDB(schema)
 
 func main() {
 	//http.HandleFunc("/", HelloServer)
@@ -31,16 +55,18 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		fmt.Printf("Go server handling GET request: \n")
-		GetReuqestPayLoadAsMetadataEntry(w, r)
+		//AddOneEntrytoDatabase()
+		ListDatabase()
 	case "POST":
 		fmt.Printf("Go server handling POST request: \n")
 		var entry *Metadata = GetReuqestPayLoadAsMetadataEntry(w, r)
-		fmt.Printf("Title = %v\n", entry.Title)
+		//fmt.Printf("Title = %v\n", entry.Title)
+		AddOneEntrytoDatabase(entry)
 	}
 
 }
 
-func readOneMetadataEntry(filePath string) {
+func readOneMetadataEntry(filePath string) *Metadata {
 	dat, err := ioutil.ReadFile(filePath)
 	check(err)
 	//    fmt.Print(string(dat))
@@ -54,6 +80,8 @@ func readOneMetadataEntry(filePath string) {
 
 	fmt.Printf("%v\n", entry.Title)
 	fmt.Printf("%v, %v\n", entry.Maintainers[0].Name, entry.Maintainers[0].Email)
+
+	return &entry
 }
 
 func check(e error) {
