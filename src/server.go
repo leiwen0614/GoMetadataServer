@@ -8,14 +8,13 @@ import (
 	//    "io"
 	"io/ioutil"
 	//    "os"
+	"github.com/nedscode/memdb"
 	"gopkg.in/yaml.v2"
 )
 
-func main() {
-	//http.HandleFunc("/", HelloServer)
-	//http.ListenAndServe(":8080", nil)
-	//readOneMetadataEntry("test_data/valid1.yml")
+var mdb memdb.Storer = memdb.NewStore().PrimaryKey("Title", "Version").CreateIndex("Title", "Version").CreateIndex("Title").CreateIndex("Version")
 
+func main() {
 	http.HandleFunc("/", requestHandler)
 	http.ListenAndServe(":8080", nil)
 
@@ -31,11 +30,13 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		fmt.Printf("Go server handling GET request: \n")
-		GetReuqestPayLoadAsMetadataEntry(w, r)
+		IteratorDatabase()
 	case "POST":
 		fmt.Printf("Go server handling POST request: \n")
 		var entry *Metadata = GetReuqestPayLoadAsMetadataEntry(w, r)
 		fmt.Printf("Title = %v\n", entry.Title)
+
+		AddOneEndTry(entry)
 	}
 
 }
