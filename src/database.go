@@ -1,53 +1,43 @@
 package main
 
-import "fmt"
-
-/*
-func (i *Metadata) Less(other memdb.Indexer) bool {
-	switch o := other.(type) {
-	case *Metadata:
-		if i.Title < o.Title {
-			return true
-		}
-		if i.Title > o.Title {
-			return false
-		}
-		if i.Version < o.Version {
-			return true
-		}
-		if i.Version > o.Version {
-			return false
-		}
-		return false
-	}
-	return memdb.Unsure(i, other)
-
-}
-
-func (i *Metadata) GetField(field string) string {
-	switch field {
-	case "Title":
-		return i.Title
-	case "Version":
-		return i.Version
-	default:
-		return "" // Indicates should not be indexed
-	}
-}
-*/
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 func AddOneEndTry(entry *Metadata) {
 	mdb.Put(entry)
 }
 
-func IteratorDatabase() {
+func IteratorDatabase(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Iterating over all metadata: \n")
 	count := 0
+	rt := make([]*Metadata, 0)
+
 	mdb.Ascend(func(indexer interface{}) bool {
 		entry := indexer.(*Metadata)
-		fmt.Printf("%s %s ($%d rrp)\n", entry.Title, entry.Version, entry.Company)
+		rt = append(rt, entry)
+
+		/*
+			entryYaml, err := yaml.Marshal(entry)
+			check(err)
+			entryJson, err := yaml.YAMLToJSON(entryYaml)
+			check(err)
+
+				fmt.Printf("======\n")
+				fmt.Printf(string(entryJson))
+				fmt.Printf("======\n")
+		*/
+
+		//fmt.Printf("Title: %v, Version: %v, Maintainer: %v Company: %v\n", entry.Title, entry.Version, entry.Maintainers, entry.Company)
 		count++
 		return true
 	})
-	fmt.Println("Found %d metadata entry\n", count)
+	fmt.Println("Found %v metadata entry\n", count)
+
+	json_bytes, _ := json.Marshal(rt)
+	w.Header().Set("Content-type", "application/json")
+	fmt.Fprintf(w, "%s\n", json_bytes)
+
 }

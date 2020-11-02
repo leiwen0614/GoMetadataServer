@@ -30,7 +30,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		fmt.Printf("Go server handling GET request: \n")
-		IteratorDatabase()
+		IteratorDatabase(w, r)
 	case "POST":
 		fmt.Printf("Go server handling POST request: \n")
 		var entry *Metadata = GetReuqestPayLoadAsMetadataEntry(w, r)
