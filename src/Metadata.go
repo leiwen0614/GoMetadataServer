@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -35,8 +36,8 @@ func GetReuqestPayLoadAsMetadataEntry(w http.ResponseWriter, r *http.Request) *M
 		http.Error(w, "invalid yaml", http.StatusUnprocessableEntity)
 	}
 
-	//fmt.Printf("Title: %v\n", metadataEntry.Title)
-	//fmt.Printf("Version: %v\n", metadataEntry.Version)
+	fmt.Printf("Title: %v\n", metadataEntry.Title)
+	fmt.Printf("Version: %v\n", metadataEntry.Version)
 
 	return metadataEntry
 }

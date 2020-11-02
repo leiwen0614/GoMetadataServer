@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Init the in-memory database as global variable
 var schema *memdb.DBSchema = &memdb.DBSchema{
 	Tables: map[string]*memdb.TableSchema{
 		"metadata": &memdb.TableSchema{
@@ -24,7 +25,7 @@ var schema *memdb.DBSchema = &memdb.DBSchema{
 				},
 				"version": &memdb.IndexSchema{
 					Name:    "version",
-					Unique:  true,
+					Unique:  false,
 					Indexer: &memdb.StringFieldIndex{Field: "Version"},
 				},
 			},
@@ -32,7 +33,7 @@ var schema *memdb.DBSchema = &memdb.DBSchema{
 	},
 }
 
-// Create a new data base
+// Create a new database instance
 var db, err = memdb.NewMemDB(schema)
 
 func main() {

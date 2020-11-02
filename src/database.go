@@ -61,5 +61,6 @@ func ListDatabase() {
 	for obj := allData.Next(); obj != nil; obj = allData.Next() {
 		p := obj.(*Metadata)
 		fmt.Printf("  %s\n", p.Title)
+		fmt.Printf("  %s\n", p.Version)
 	}
 }
