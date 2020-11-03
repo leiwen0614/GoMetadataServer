@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var mdb memdb.Storer = memdb.NewStore().PrimaryKey("Title", "Version").CreateIndex("Title", "Version").CreateIndex("Title").CreateIndex("Version")
+var mdb memdb.Storer = memdb.NewStore().PrimaryKey("Title", "Version").CreateIndex("Title").CreateIndex("Version").CreateIndex("Company")
 
 func main() {
 	http.HandleFunc("/", requestHandler)
@@ -30,7 +30,14 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		fmt.Printf("Go server handling GET request: \n")
-		IteratorDatabase(w, r)
+		if r.Body == http.NoBody {
+			fmt.Printf("No Request body, return all metadata entry in json array. \n")
+			IteratorDatabase(w, r)
+		} else {
+			fmt.Printf("Found request body, query database. \n")
+			QueryDatabase(w, r)
+		}
+
 	case "POST":
 		fmt.Printf("Go server handling POST request: \n")
 		var entry *Metadata = GetReuqestPayLoadAsMetadataEntry(w, r)

@@ -3,7 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
+
+	"gopkg.in/yaml.v2"
 )
 
 func AddOneEndTry(entry *Metadata) {
@@ -19,22 +23,52 @@ func IteratorDatabase(w http.ResponseWriter, r *http.Request) {
 		entry := indexer.(*Metadata)
 		rt = append(rt, entry)
 
-		/*
-			entryYaml, err := yaml.Marshal(entry)
-			check(err)
-			entryJson, err := yaml.YAMLToJSON(entryYaml)
-			check(err)
-
-				fmt.Printf("======\n")
-				fmt.Printf(string(entryJson))
-				fmt.Printf("======\n")
-		*/
-
-		//fmt.Printf("Title: %v, Version: %v, Maintainer: %v Company: %v\n", entry.Title, entry.Version, entry.Maintainers, entry.Company)
 		count++
 		return true
 	})
 	fmt.Println("Found %v metadata entry\n", count)
+
+	json_bytes, _ := json.Marshal(rt)
+	w.Header().Set("Content-type", "application/json")
+	fmt.Fprintf(w, "%s\n", json_bytes)
+
+}
+
+func QueryDatabase(w http.ResponseWriter, r *http.Request) {
+	rt := make([]*Metadata, 0)
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var metadataEntry = new(Metadata)
+
+	err = yaml.UnmarshalStrict([]byte(reqBody), &metadataEntry)
+	if err != nil {
+		http.Error(w, "invalid yaml", http.StatusUnprocessableEntity)
+	}
+	fmt.Printf("query Title: %v\n", metadataEntry.Title)
+	fmt.Printf("query Version: %v\n", metadataEntry.Version)
+
+	var indexers []interface{}
+
+	if len(metadataEntry.Title) != 0 && len(metadataEntry.Version) != 0 {
+		indexers = mdb.In("Title", "Version").Lookup(metadataEntry.Title, metadataEntry.Version)
+	} else if len(metadataEntry.Title) != 0 && len(metadataEntry.Version) == 0 {
+		indexers = mdb.In("Title").Lookup(metadataEntry.Title)
+	} else if len(metadataEntry.Title) == 0 && len(metadataEntry.Version) != 0 {
+		indexers = mdb.In("Version").Lookup(metadataEntry.Version)
+	}
+
+	//indexers = mdb.In("Title", "Version").Lookup(metadataEntry.Title, metadataEntry.Version)
+
+	fmt.Printf("indexers len = %d\n", len(indexers))
+	for _, indexer := range indexers {
+		entry := indexer.(*Metadata)
+		fmt.Printf("found found something: %v\n", metadataEntry.Title)
+		rt = append(rt, entry)
+	}
 
 	json_bytes, _ := json.Marshal(rt)
 	w.Header().Set("Content-type", "application/json")
